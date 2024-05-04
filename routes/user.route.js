@@ -15,10 +15,9 @@ userRouter.get("/", auth, (req, res) => {
 
 userRouter.post("/register", upload.single('avatar'), async (req, res) => {
     const { fullname, email, password, phone_number } = req.body;
-    const avatar = req.file.path;
+    const avatar = req.file ? req.file.path : undefined;
     try {
         const existingUser = await userModel.findOne({ email: email });
-
         if (existingUser) {
             return res.status(400).send({ message: "User already in exists!" });
         }
@@ -39,29 +38,29 @@ userRouter.post("/register", upload.single('avatar'), async (req, res) => {
 })
 
 userRouter.post("/login", async (req, res) => {
-    const { email, password } = req.body
+    const { email, password } = req.body;
     try {
         const user = await userModel.findOne({ email });
+        console.log(user);
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        if (user) {
-            bcrypt.compare(password, user.password, (err, result) => {
-                if (result) {
-                    const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY)
-                    res.status(200).json({ message: "Login Successfull", token })
-                } else {
-                    res.status(400).json({ message: "Try Again After Sometime" });
-                }
-            })
-        }
-        else {
-            res.status(400).json({ message: "Login UnSuccessfull" });
-        }
+        
+        bcrypt.compare(password, user.password, (err, result) => {
+            if (err) {
+                return res.status(500).json({ message: "Error checking credentials" });
+            }
+            if (result) {
+                const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY);
+                res.status(200).json({ message: "Login Successful", token, user });
+            } else {
+                res.status(401).json({ message: "Invalid password" });
+            }
+        });
     } catch (error) {
-        res.status(400).json({ message: error });
+        res.status(500).json({ message: "Server error during login" });
     }
-})
+});
 
 
 module.exports = {
