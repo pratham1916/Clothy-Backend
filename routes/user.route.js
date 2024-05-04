@@ -9,7 +9,7 @@ const { auth } = require("../middleware/auth.middleware");
 const upload = multer({ storage: storage })
 require("dotenv").config()
 
-userRouter.get("/",auth,(req,res)=>{
+userRouter.get("/", auth, (req, res) => {
     res.send("User router");
 })
 
@@ -48,7 +48,7 @@ userRouter.post("/login", async (req, res) => {
         if (user) {
             bcrypt.compare(password, user.password, (err, result) => {
                 if (result) {
-                    const token = jwt.sign({ userId: user._id}, process.env.SECRET_KEY)
+                    const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY)
                     res.status(200).json({ message: "Login Successfull", token })
                 } else {
                     res.status(400).json({ message: "Try Again After Sometime" });
