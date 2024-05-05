@@ -16,11 +16,13 @@ userRouter.get("/", auth, (req, res) => {
 userRouter.post("/register", upload.single('avatar'), async (req, res) => {
     const { fullname, email, password, phone_number } = req.body;
     const avatar = req.file ? req.file.path : undefined;
+    console.log(avatar);
     try {
         const existingUser = await userModel.findOne({ email: email });
         if (existingUser) {
             return res.status(400).send({ message: "User already in exists!" });
         }
+        
         const hash = await bcrypt.hash(password, 5);
         const user = new userModel({
             fullname,
